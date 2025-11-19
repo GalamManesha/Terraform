@@ -37,7 +37,6 @@ pipeline {
 
         stage('Terraform Apply') {
             steps {
-                input message: "Do you want to create S3 bucket?"
                 dir('terraform-workspace') {
                     sh '''
                         terraform apply -auto-approve
