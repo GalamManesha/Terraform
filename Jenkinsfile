@@ -4,7 +4,7 @@ pipeline {
     parameters {
         choice(
             name: 'ENVIRONMENT',
-            choices: ['dev', 'prod', 'uat'],
+            choices: ['dev', 'prod' , 'uat'],
             description: 'Select environment'
         )
     }
@@ -30,10 +30,10 @@ pipeline {
                     ]]) {
 
                         script {
-                            def envName = params.ENVIRONMENT
+                            def envName     = params.ENVIRONMENT
 
                             sh """
-                                terraform init -reconfigure -input=false -no-color \
+                                terraform init -reconfigure -no-color \
                                     -backend-config=bucket=my-first-bucket-state-file \
                                     -backend-config=key=${envName}/terraform.tfstate \
                                     -backend-config=region=${AWS_REGION}
