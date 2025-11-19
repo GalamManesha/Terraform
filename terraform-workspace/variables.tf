@@ -22,3 +22,8 @@ variable "region" {
   type    = string
   default = "ap-south-1"
 }
+variable "aws_s3_bucket" {
+    default = "my-first-bucket-state-file"
+    type = string
+  
+}
