@@ -17,7 +17,7 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                dir('terraform') {
+                dir('terraform-workspace') {
                     sh '''
                         terraform init
                     '''
@@ -27,7 +27,7 @@ pipeline {
 
         stage('Terraform Plan') {
             steps {
-                dir('terraform') {
+                dir('terraform-workspace') {
                     sh '''
                         terraform plan
                     '''
@@ -37,7 +37,7 @@ pipeline {
 
         stage('Terraform Apply') {
             steps {
-                dir('terraform') {
+                dir('terraform-workspace') {
                     sh '''
                         terraform apply -auto-approve
                     '''
