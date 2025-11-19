@@ -4,7 +4,7 @@ pipeline {
     environment {
         AWS_ACCESS_KEY_ID     = credentials('aws-cred')
         AWS_SECRET_ACCESS_KEY = credentials('aws-cred')
-        AWS_DEFAULT_REGION     = "ap-south-1"
+        AWS_DEFAULT_REGION    = "ap-south-1"
     }
 
     stages {
@@ -19,7 +19,20 @@ pipeline {
             steps {
                 dir('terraform-workspace') {
                     sh '''
-                        terraform init
+                        terraform init \
+                        -backend-config="bucket=my-terraform-state-bucket-ap-south-1" \
+                        -backend-config="key=env/dev/terraform.tfstate" \
+                        -backend-config="region=ap-south-1"
+                    '''
+                }
+            }
+        }
+
+        stage('Select Workspace') {
+            steps {
+                dir('terraform-workspace') {
+                    sh '''
+                        terraform workspace select dev || terraform workspace new dev
                     '''
                 }
             }
@@ -48,10 +61,11 @@ pipeline {
 
     post {
         success {
-            echo '✅ S3 Bucket created successfully!'
+            echo 'Success'
         }
         failure {
-            echo '❌ Terraform failed! Check logs.'
+            echo 'Failed'
         }
     }
 }
+
