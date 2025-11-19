@@ -4,7 +4,7 @@ pipeline {
     parameters {
         choice(
             name: 'ENVIRONMENT',
-            choices: ['dev', 'prod' , 'uat'],
+            choices: ['dev', 'prod', 'uat'],
             description: 'Select environment'
         )
     }
@@ -28,12 +28,11 @@ pipeline {
                         $class: 'AmazonWebServicesCredentialsBinding',
                         credentialsId: 'aws-cred'
                     ]]) {
-
                         script {
-                            def envName     = params.ENVIRONMENT
+                            def envName = params.ENVIRONMENT
 
                             sh """
-                                terraform init -reconfigure -no-color \
+                                terraform init -reconfigure -force-copy -input=false -no-color \
                                     -backend-config=bucket=my-first-bucket-state-file \
                                     -backend-config=key=${envName}/terraform.tfstate \
                                     -backend-config=region=${AWS_REGION}
