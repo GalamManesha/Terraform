@@ -6,3 +6,7 @@ resource "aws_instance" "example" {
     Name = var.tags
   }
 }
+resource "aws_s3_bucket" "my-first-bucket-state-file" {
+  bucket = var.aws_s3_bucket
+   region = var.region
+  }
