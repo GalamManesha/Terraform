@@ -1,71 +1,93 @@
 pipeline {
     agent any
 
+    parameters {
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['dev', 'prod' , 'uat'],
+            description: 'Select environment'
+        )
+    }
+
     environment {
-        AWS_ACCESS_KEY_ID     = credentials('aws-cred')
-        AWS_SECRET_ACCESS_KEY = credentials('aws-cred')
-        AWS_DEFAULT_REGION    = "ap-south-1"
+        AWS_REGION = "ap-south-1"
     }
 
     stages {
 
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/GalamManesha/Terraform.git'
+                checkout scm
             }
         }
 
-        stage('Terraform Init') {
+        stage('Init Terraform') {
             steps {
-                dir('terraform-workspace') {
-                    sh '''
-                        terraform init \
-                        -backend-config="bucket=my-terraform-state-bucket-ap-south-1" \
-                        -backend-config="key=env/dev/terraform.tfstate" \
-                        -backend-config="region=ap-south-1"
-                    '''
+                dir('terraform') {
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: 'aws-cred'
+                    ]]) {
+
+                        script {
+                            def envName     = params.ENVIRONMENT
+                            def tfvarsFile  = "${envName}.tfvars"
+                            def backendBucket = "my-first-bucket-state-file-${envName}"
+
+                            sh """
+                                terraform init -reconfigure -input=false -no-color \
+                                    -backend-config=bucket=${backendBucket} \
+                                    -backend-config=key=${envName}/terraform.tfstate \
+                                    -backend-config=region=${AWS_REGION}
+                            """
+
+                            // Workspace logic
+                            def workspaces = sh(
+                                script: "terraform workspace list",
+                                returnStdout: true
+                            ).trim().split("\\n").collect { it.replace("*", "").trim() }
+
+                            if (!workspaces.contains(envName)) {
+                                sh "terraform workspace new ${envName}"
+                            }
+
+                            sh "terraform workspace select ${envName}"
+                        }
+                    }
                 }
             }
         }
 
-        stage('Select Workspace') {
+        stage('Plan Terraform') {
             steps {
-                dir('terraform-workspace') {
-                    sh '''
-                        terraform workspace select dev || terraform workspace new dev
-                    '''
+                dir('terraform') {
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: 'aws-cred'
+                    ]]) {
+                        sh """
+                            terraform plan -input=false -no-color \
+                                -var-file=${params.ENVIRONMENT}.tfvars
+                        """
+                    }
                 }
             }
         }
 
-        stage('Terraform Plan') {
+        stage('Apply Terraform') {
             steps {
-                dir('terraform-workspace') {
-                    sh '''
-                        terraform plan
-                    '''
+                dir('terraform') {
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: 'aws-cred'
+                    ]]) {
+                        sh """
+                            terraform apply -auto-approve -input=false -no-color \
+                                -var-file=${params.ENVIRONMENT}.tfvars
+                        """
+                    }
                 }
             }
-        }
-
-        stage('Terraform Apply') {
-            steps {
-                dir('terraform-workspace') {
-                    sh '''
-                        terraform apply -auto-approve
-                    '''
-                }
-            }
-        }
-    }
-
-    post {
-        success {
-            echo 'Success'
-        }
-        failure {
-            echo 'Failed'
         }
     }
 }
-
