@@ -35,7 +35,8 @@ pipeline {
                                 terraform init -reconfigure -force-copy -input=false -no-color \
                                     -backend-config=bucket=my-first-bucket-state-file \
                                     -backend-config=key=${envName}/terraform.tfstate \
-                                    -backend-config=region=${AWS_REGION}
+                                    -backend-config=region=${AWS_REGION} \
+                                    -backend-config=dynamodb_table=terraform-locks
                             """
 
                             def workspaces = sh(
