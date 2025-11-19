@@ -23,7 +23,7 @@ pipeline {
 
         stage('Init Terraform') {
             steps {
-                dir('terraform') {
+                dir('terraform-workspace') {
                     withCredentials([[
                         $class: 'AmazonWebServicesCredentialsBinding',
                         credentialsId: 'aws-cred'
@@ -60,7 +60,7 @@ pipeline {
 
         stage('Plan Terraform') {
             steps {
-                dir('terraform') {
+                dir('terraform-workspace') {
                     withCredentials([[
                         $class: 'AmazonWebServicesCredentialsBinding',
                         credentialsId: 'aws-cred'
@@ -76,7 +76,7 @@ pipeline {
 
         stage('Apply Terraform') {
             steps {
-                dir('terraform') {
+                dir('terraform-workspace') {
                     withCredentials([[
                         $class: 'AmazonWebServicesCredentialsBinding',
                         credentialsId: 'aws-cred'
