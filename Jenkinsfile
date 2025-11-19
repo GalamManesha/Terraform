@@ -17,7 +17,7 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                dir('terraform') {
+                dir('terraform-workspace') {
                     sh '''
                         terraform init
                     '''
@@ -27,7 +27,7 @@ pipeline {
 
         stage('Terraform Plan') {
             steps {
-                dir('terraform') {
+                dir('terraform-workspace') {
                     sh '''
                         terraform plan
                     '''
@@ -38,7 +38,7 @@ pipeline {
         stage('Terraform Apply') {
             steps {
                 input message: "Do you want to create S3 bucket?"
-                dir('terraform') {
+                dir('terraform-workspace') {
                     sh '''
                         terraform apply -auto-approve
                     '''
